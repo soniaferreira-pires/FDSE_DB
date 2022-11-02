@@ -8,9 +8,7 @@ CREATE TABLE runner (
  name VARCHAR NOT NULL,
  sex CHAR(1) NOT NULL CHECK (sex IN ('M', 'F')),
  nation CHAR(2),
- birthdate DATE NOT NULL,
- --team_id INTEGER NOT NULL REFERENCES team
- -- UNIQUE (name, birthdate) --?? To be confirmed if this makes a unique name & birthdate entry
+ birthdate DATE NOT NULL
 );
 
 CREATE TABLE age_class (
@@ -42,5 +40,5 @@ CREATE TABLE participation_details (
  team_id SERIAL REFERENCES team,
  runner_id SERIAL NOT NULL REFERENCES runner,
  ageclass_id SERIAL NOT NULL REFERENCES age_class,
- event_id SERIAL NOT NULL REFERENCES event,
+ event_id SERIAL NOT NULL REFERENCES event
 );
