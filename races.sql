@@ -1,16 +1,21 @@
 CREATE TABLE team (
- team_id INTEGER PRIMARY KEY,
- name VARCHAR NOT NULL UNIQUE
+ team_id SERIAL PRIMARY KEY,
+ name CHARACTER VARYING(100) NOT NULL UNIQUE
 );
  
 CREATE TABLE runner (
- id INTEGER PRIMARY KEY,
+ runner_id SERIAL PRIMARY KEY,
  name VARCHAR NOT NULL,
  sex CHAR(1) NOT NULL CHECK (sex IN ('M', 'F')),
  nation CHAR(2),
  birthdate DATE NOT NULL,
- team_id INTEGER NOT NULL REFERENCES team
+ --team_id INTEGER NOT NULL REFERENCES team
  -- UNIQUE (name, birthdate) --?? To be confirmed if this makes a unique name & birthdate entry
+);
+
+CREATE TABLE age_class (
+ ageclass_id SERIAL UNIQUE PRIMARY KEY,
+ age_class VARCHAR(3) NOT NULL UNIQUE
 );
  
 CREATE TABLE event_type (
@@ -25,19 +30,17 @@ CREATE TABLE event (
  eventtype_id INTEGER NOT NULL REFERENCES event_type
 );
  
-CREATE TABLE class (
- class_id SERIAL UNIQUE PRIMARY KEY,
- age_class VARCHAR NOT NULL UNIQUE
-);
  
-CREATE TABLE event_details (
+CREATE TABLE participation_details (
+ partdet_id SERIAL UNIQUE PRIMARY KEY,
  bib INTEGER NOT NULL,
- official_time TIME NOT NULL,       --?? Do we have other opt for storing days as well?
- net_time TIME,     ---?? Do we have other opt for storing days as well?
+ official_time TIME NOT NULL,       
+ net_time TIME,                    
  place INTEGER NOT NULL,
  place_in_class INTEGER NOT NULL,
  age INTEGER NOT NULL CHECK (age >= 17),    --- field to be calc. with birth_date
- class_id INTEGER NOT NULL REFERENCES class,
- event_id SERIAL UNIQUE REFERENCES event,
- UNIQUE (event_id, place) -- only 1 place allowed per event
+ team_id SERIAL REFERENCES team,
+ runner_id SERIAL NOT NULL REFERENCES runner,
+ ageclass_id SERIAL NOT NULL REFERENCES age_class,
+ event_id SERIAL NOT NULL REFERENCES event,
 );
