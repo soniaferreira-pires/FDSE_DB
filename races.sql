@@ -1,28 +1,28 @@
 CREATE TABLE team (
  team_id SERIAL PRIMARY KEY,
- name CHARACTER VARYING(100) NOT NULL UNIQUE
+ team_name CHARACTER VARYING(100) NOT NULL UNIQUE
 );
  
 CREATE TABLE runner (
  runner_id SERIAL PRIMARY KEY,
- name VARCHAR NOT NULL,
+ runner_name VARCHAR NOT NULL,
  sex CHAR(1) NOT NULL CHECK (sex IN ('M', 'F')),
  nation CHAR(2),
  birthdate DATE NOT NULL
 );
 
 CREATE TABLE age_class (
- ageclass_id SERIAL UNIQUE PRIMARY KEY,
+ ageclass_id SERIAL PRIMARY KEY,
  age_class VARCHAR(3) NOT NULL UNIQUE
 );
  
 CREATE TABLE event_type (
- eventtype_id SERIAL UNIQUE PRIMARY KEY,
- name VARCHAR(90) NOT NULL UNIQUE
+ eventtype_id SERIAL PRIMARY KEY,
+ eventtype_name VARCHAR(90) NOT NULL UNIQUE
 );
  
 CREATE TABLE event (
- event_id SERIAL UNIQUE PRIMARY KEY,
+ event_id SERIAL PRIMARY KEY,
  distance INTEGER NOT NULL,
  event_year SMALLINT NOT NULL,
  eventtype_id INTEGER NOT NULL REFERENCES event_type
@@ -30,7 +30,7 @@ CREATE TABLE event (
  
  
 CREATE TABLE participation_details (
- partdet_id SERIAL UNIQUE PRIMARY KEY,
+ partdet_id SERIAL PRIMARY KEY,
  bib INTEGER NOT NULL,
  official_time TIME NOT NULL,       
  net_time TIME,                    
