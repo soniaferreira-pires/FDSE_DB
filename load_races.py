@@ -2,7 +2,21 @@ import pwinput
 import pandas as pd
 import numpy as np
 import psycopg2
+import datetime
 
+# -------------------------------------------------- WELCOME ----------------------------------------------------------#
+print(r"""____    __    ____  _______  __        ______   ______   .___  ___.  _______
+\   \  /  \  /   / |   ____||  |      /      | /  __  \  |   \/   | |   ____|
+ \   \/    \/   /  |  |__   |  |     |  ,----'|  |  |  | |  \  /  | |  |__   
+  \            /   |   __|  |  |     |  |     |  |  |  | |  |\/|  | |   __|  
+   \    /\    /    |  |____ |  `----.|  `----.|  `--'  | |  |  |  | |  |____ 
+    \__/  \__/     |_______||_______| \______| \______/  |__|  |__| |_______|
+                                                                             """)
+print("This is the load_races wizzard! \n")
+print("'Patience is bitter, but its fruit is sweet.' ~ Aristotle")
+
+print("The process of creating and populating the database may take some time, but I will keep you informed on "
+      "the status along the way :) \n")
 # -------------------------------------------- CONNECT TO  DATABASE ---------------------------------------------------#
 
 connected = False
@@ -18,7 +32,7 @@ while not connected:
             password=password,  # your password
             host="dbm.fe.up.pt",  # the database host
             port="5433",
-            options='-c search_path=public') # use the schema you want to connect to
+            options='-c search_path=public')  # use the schema you want to connect to
         connected = True
 
     except psycopg2.OperationalError:
@@ -28,28 +42,64 @@ while not connected:
     finally:
         continue
 
-# ---------------------------------------------- CREATE DATABASE ------------------------------------------------------#
-
-print("-----------STARTING CREATING TABLES--------------")
-
-sql_create = open('races.sql', 'r')
-sql_create_script = sql_create.read()
-sql_create.close()
-
-print("read the script")
-
-
-cur = con.cursor()
-cur.execute(sql_create_script)
-con.commit()
-con.close()
-
-print("created the tables in DB")
-print("-----------FINNISHED CREATING TABLES--------------")
 
 # ------------------------------------------ DELETE DATABASE RECORDS --------------------------------------------------#
 
-# TODO: code for deleting all DB records
+def delete_records():
+    cur0 = con.cursor()
+    cur0.execute("TRUNCATE TABLE team, runner, event_type, age_class, event, participation_details;")
+    con.commit()
+
+
+def delete_all_tables():
+    cur0 = con.cursor()
+    cur0.execute("DROP TABLE team, runner, event_type, age_class, event, participation_details;")
+    con.commit()
+
+
+chosen = False
+while not chosen:
+
+    user_input1 = input('Please choose what you would like to do (enter the letter describing your choice): \n'
+                        '(a) I wish to delete all records from the database (in public schema) \n'
+                        '(b) I wish to delete all records AND tables from the database (in public schema) \n'
+                        '(c) I don\'t wish to delete any record nor tables from the database (in public schema) \n')
+
+    if user_input1.lower == 'a':
+        chosen = True
+        delete_records()
+        continue
+
+    elif user_input1.lower == 'b':
+        chosen = True
+        delete_all_tables()
+        continue
+
+    elif user_input1.lower == 'c':
+        chosen = True
+        continue
+
+    else:
+        print('Please input a valid choice.')
+        continue
+
+# ---------------------------------------------- CREATE DATABASE ------------------------------------------------------#
+if user_input1 == 'b':
+    print("-----------------STARTING CREATING TABLES--------------------")
+
+    sql_create = open('races.sql', 'r')
+    sql_create_script = sql_create.read()
+    sql_create.close()
+
+    print("read the script")
+
+    cur = con.cursor()
+    cur.execute(sql_create_script)
+    con.commit()
+    # con.close()
+
+    print("created the tables in DB")
+    print("--------------FINNISHED CREATING TABLES--------------------")
 
 # ------------------------------------------------ LOAD DATASET -------------------------------------------------------#
 
@@ -57,11 +107,12 @@ data = pd.read_csv('all_races_dataset.csv',
                    low_memory=False,
                    encoding='utf-8')
 
-# ---------------------------------------------- CLEAN DATASET ------------------------------------------------------#
+# ---------------------------------------------- CLEAN DATASET --------------------------------------------------------#
 
-print("--------------------STARTING TO CLEAN DATA SET -------------------")
+print("-----------------STARTING TO CLEAN DATA SET -------------------")
 
 # DROPING ROWS REPEATING THE NAME OF COLUMNS
+
 for i, j in data.iterrows():
     # print(f"i: {i}  -- j: {j}")
     if j[1] in data.columns:
@@ -70,6 +121,7 @@ for i, j in data.iterrows():
 print("removed dupplicated column name rows")
 
 # CONVERTING DTYPES
+
 data_type = data.copy()
 
 pd.set_option('display.max_columns', None)
@@ -95,14 +147,15 @@ print("converted datatypes")
 
 data_type.drop_duplicates(subset=None, keep='first', inplace=True)
 
+print("removed dupplicates")
 
-# O data et estava duplicado na totalidade. Por isso é que existia uma linha a meio com o título das colunas.
+# O data set estava duplicado na totalidade. Por isso é que existia uma linha a meio com o título das colunas.
 # Passamos de um dataset com 293858 registos para 146923 registos.
 
 # POPULATE AGE GROUP COLUMN
 
 # Este dataset continha muitos erros no age_group e podemos popular a coluna corretamente
-print("removed dupplicates")
+
 
 def year_class(event_year, birth_year):
     diff = event_year - birth_year
@@ -132,11 +185,11 @@ data_type['age_class'] = data_type.apply(lambda x: x.sex + year_class(x.event_ye
 
 print("corrected age_groups")
 
-print("--------------------FINISHED CLEAN DATA SET --------------")
+print("--------------------FINISHED CLEAN DATA SET -------------------")
 
 # ----------------------------------------- PREPARE TABLES TO DATABASE ------------------------------------------------#
 
-print("--------------------STARTING TO PREPARE TABLES TO DATA BASE --------------")
+print("------------STARTING TO PREPARE TABLES TO DATA BASE -----------")
 
 # ORIGINAL TABLE
 
@@ -151,6 +204,7 @@ print("ORIGINAL TABLE DATAFRAME was successfully created")
 
 data_team = data_idx.loc[:, ['team']].copy()
 data_team.drop_duplicates(subset=None, keep='first', inplace=True)
+data_team.dropna(axis='rows', inplace=True)
 team_idx_lst = [item for item in range(1, (len(data_team.index)) + 1)]
 data_team.insert(loc=0, column='team_idx', value=team_idx_lst)
 
@@ -162,7 +216,6 @@ data_runner = data_idx.loc[:, ['name', 'sex', 'nation', 'birth_date']].copy()
 data_runner.drop_duplicates(subset=None, keep='first', inplace=True)
 runner_idx_lst = [item for item in range(1, (len(data_runner.index)) + 1)]
 data_runner.insert(loc=0, column='runner_idx', value=runner_idx_lst)
-# data_runner.to_csv('data_runner.csv')
 
 print("RUNNER TABLE DATAFRAME was successfully created")
 
@@ -170,20 +223,19 @@ print("RUNNER TABLE DATAFRAME was successfully created")
 
 data_event_type = data_idx.loc[:, ['event']].copy()
 data_event_type.drop_duplicates(subset=None, keep='first', inplace=True)
+data_event_type.dropna(axis='rows', inplace=True)
 event_type_idx_lst = [item for item in range(1, (len(data_event_type.index)) + 1)]
 data_event_type.insert(loc=0, column='event_type_idx', value=event_type_idx_lst)
 
 print("EVENT_TYPE TABLE DATAFRAME was successfully created")
 
-# data_event_type.to_csv('data_event_type.csv')
-
 # AGE CLASS TABLE
 
 data_age_class = data_idx.loc[:, ['age_class']].copy()
 data_age_class.drop_duplicates(subset=None, keep='first', inplace=True)
+data_age_class.dropna(axis='rows', inplace=True)
 age_class_idx_lst = [item for item in range(1, (len(data_age_class.index)) + 1)]
 data_age_class.insert(loc=0, column='age_class_idx', value=age_class_idx_lst)
-# data_age_class.to_csv('data_age_class.csv')
 
 print("AGE_CLASS TABLE DATAFRAME was successfully created")
 
@@ -191,6 +243,7 @@ print("AGE_CLASS TABLE DATAFRAME was successfully created")
 
 data_event = data_idx.loc[:, ['event', 'distance', 'event_year', ]].copy()
 data_event.drop_duplicates(subset=None, keep='first', inplace=True)
+data_event.dropna(axis='rows', inplace=True)
 event_idx_lst = [item for item in range(1, (len(data_event.index)) + 1)]
 data_event.insert(loc=0, column='event_idx', value=event_idx_lst)
 data_event.insert(loc=4, column='event_type_idf', value=0)
@@ -203,10 +256,6 @@ print("DATA_EVENT TABLE DATAFRAME was successfully created")
 
 data_event2 = data_event.loc[:, ['event_idx', 'distance', 'event_year', 'event_type_idf']].copy()
 print("DATA_EVENT 2 TABLE DATAFRAME was successfully created")
-# data_event.to_csv('data_event.csv')
-# data_event2.to_csv('data_event2.csv')
-
-# print(data_event2)
 
 # PARTICIPATION DETAILS TABLE
 
@@ -236,7 +285,6 @@ data_participation_details2 = data_participation_details.copy()
 for i in range(len(data_participation_details2)):
     ageclass = data_participation_details2.iloc[i, 9]
     ageclass_id = data_age_class.loc[data_age_class['age_class'] == ageclass]['age_class_idx']
-    # print(f" i: {i}, runner_id: {runner_id}, runner: {runner}")
     data_participation_details2.iloc[i, 17] = ageclass_id
 
 print("DATA_PARTICIPATION_DETAILS2: age class fk TABLE DATAFRAME was successfully created")
@@ -245,7 +293,6 @@ for i in range(len(data_participation_details2)):
     event = data_participation_details2.iloc[i, 10]
     event_year = data_participation_details2.iloc[i, 14]
     event_id = data_event.loc[(data_event['event'] == event) & (data_event['event_year'] == event_year)]['event_idx']
-    # print(f" i: {i}, runner_id: {runner_id}, runner: {runner}")
     data_participation_details2.iloc[i, 18] = event_id
 
 print("DATA_PARTICIPATION_DETAILS2: event_id fk TABLE DATAFRAME was successfully created")
@@ -253,7 +300,7 @@ print("DATA_PARTICIPATION_DETAILS2: event_id fk TABLE DATAFRAME was successfully
 for i in range(len(data_participation_details2)):
     team = data_participation_details2.iloc[i, 7]
     if (team is not None) and (not pd.isna(team)):
-        if (team.lower() != 'individual'):
+        if (team.lower() != 'individual') or (team.lower() != 'indibidual'):
             team_id = int(data_team.loc[data_team['team'] == team]['team_idx'])
         else:
             team_id = np.nan
@@ -273,15 +320,15 @@ print("DATA_PARTICIPATION_DETAILS3: TABLE DATAFRAME was successfully created")
 
 # --------------------------------------------- POPULATE DATABASE -----------------------------------------------------#
 
-
-print("-------------------------STARTING POPULATING DATABASE--------------------")
+print("----------------STARTING POPULATING DATABASE-------------------")
 
 # TABLE TEAM
+
 for index, row in data_team.iterrows():
     team_idx = row['team_idx']
-    name = row['name']
+    team = row['team']
     cur = con.cursor()
-    cur.execute(f"INSERT INTO team VALUES ({team_idx},'{name}');")
+    cur.execute("INSERT INTO team VALUES (%s, %s);", (team_idx, team))
     con.commit()
 
 print("TEAM TABLE was successfully populated")
@@ -295,8 +342,7 @@ for index, row in data_runner.iterrows():
     nation = row['nation']
     birth_date = row['birth_date']
     cur = con.cursor()
-    cur.execute(f"INSERT INTO runner VALUES ({runner_idx},'{name}', '{sex}', '{nation}',"
-                f"'{birth_date});")
+    cur.execute("INSERT INTO runner VALUES (%s, %s, %s, %s, %s);", (runner_idx, name, sex, nation, birth_date))
     con.commit()
 
 print("RUNNER TABLE was successfully populated")
@@ -307,7 +353,7 @@ for index, row in data_age_class.iterrows():
     age_class_idx = row['age_class_idx']
     age_class = row['age_class']
     cur = con.cursor()
-    cur.execute(f"INSERT INTO age_class VALUES ({age_class_idx},'{age_class}');")
+    cur.execute("INSERT INTO age_class VALUES (%s, %s);", (age_class_idx, age_class))
     con.commit()
 
 print("AGE_CLASS TABLE was successfully populated")
@@ -318,7 +364,7 @@ for index, row in data_event_type.iterrows():
     event_type_idx = row['event_type_idx']
     event = row['event']
     cur = con.cursor()
-    cur.execute(f"INSERT INTO event_type VALUES ({event_type_idx},'{event}');")
+    cur.execute("INSERT INTO event_type VALUES (%s, %s);", (event_type_idx, event))
     con.commit()
 
 print("EVENT_TYPE TABLE was successfully populated")
@@ -331,8 +377,7 @@ for index, row in data_event2.iterrows():
     event_year = row['event_year']
     event_type_idf = row['event_type_idf']
     cur = con.cursor()
-    cur.execute(f"INSERT INTO event VALUES ({event_idx}, {distance}, '{event_year}', "
-                f"{event_type_idf});")
+    cur.execute("INSERT INTO event VALUES (%s, %s, %s, %s);", (event_idx, distance, event_year, event_type_idf))
     con.commit()
 
 print("EVENT TABLE was successfully populated")
@@ -342,8 +387,8 @@ print("EVENT TABLE was successfully populated")
 for index, row in data_participation_details3.iterrows():
     part_det_idx = row['part_det_idx']
     bib = row['bib']
-    official_time = (pd.to_datetime(row['official_time'], unit='s')).dt.time
-    net_time = (pd.to_datetime(row['net_time'], unit='s')).dt.time
+    official_time = datetime.datetime.fromtimestamp(row['official_time']).strftime("%H:%M:%S")
+    net_time = datetime.datetime.fromtimestamp(row['net_time']).strftime("%H:%M:%S")
     place = row['place']
     place_in_class = row['place_in_class']
     age = row['age']
@@ -353,12 +398,17 @@ for index, row in data_participation_details3.iterrows():
     if not pd.isna(row['team_idf']):
         team_idf = int(row['team_idf'])
     else:
-        team_idf = row['team_idf']
+        team_idf = None
     cur = con.cursor()
-    cur.execute(f"INSERT INTO participation_details VALUES ({part_det_idx},{bib}, '{official_time}', '{net_time}', "
-                f"{place}, {age}, {team_idf}, {ageclass_idf}, {event_idf} ) ;")
+    cur.execute("INSERT INTO participation_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                (part_det_idx, bib, official_time, net_time, place, place_in_class,
+                 age, team_idf, runner_idf, ageclass_idf, event_idf))
     con.commit()
+
 print("PARTICIPATION_DETAILS TABLE was successfully populated")
+
+print("-------------FINISHED POPULATING THE DATA BASE-----------------")
 
 con.close()
 
+print("\nCongratulations, you've reached the end of the wizzard!")

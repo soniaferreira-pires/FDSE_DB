@@ -25,7 +25,8 @@ CREATE TABLE event (
  event_id SERIAL PRIMARY KEY,
  distance INTEGER NOT NULL,
  event_year SMALLINT NOT NULL,
- eventtype_id INTEGER NOT NULL REFERENCES event_type
+ eventtype_id INTEGER NOT NULL REFERENCES event_type(eventtype_id)
+ON DELETE SET NULL ON UPDATE CASCADE
 );
  
  
@@ -37,8 +38,9 @@ CREATE TABLE participation_details (
  place INTEGER NOT NULL,
  place_in_class INTEGER NOT NULL,
  age INTEGER NOT NULL CHECK (age >= 17),    --- field to be calc. with birth_date
- team_id SERIAL REFERENCES team,
- runner_id SERIAL NOT NULL REFERENCES runner,
- ageclass_id SERIAL NOT NULL REFERENCES age_class,
- event_id SERIAL NOT NULL REFERENCES event
+ team_id SERIAL REFERENCES team(team_id) ON DELETE SET NULL ON UPDATE CASCADE,
+ runner_id SERIAL NOT NULL REFERENCES runner(runner_id) ON DELETE SET NULL ON UPDATE CASCADE,
+ ageclass_id SERIAL NOT NULL REFERENCES age_class(ageclass_id) ON DELETE SET NULL ON UPDATE CASCADE,
+ event_id SERIAL NOT NULL REFERENCES event(event_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
+ALTER TABLE participation_details ALTER COLUMN team_id DROP NOT NULL;
