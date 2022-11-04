@@ -65,17 +65,17 @@ while not chosen:
                         '(b) I wish to delete all records AND tables from the database (in public schema) \n'
                         '(c) I don\'t wish to delete any record nor tables from the database (in public schema) \n')
 
-    if user_input1.lower == 'a':
+    if user_input1.lower() == 'a':
         chosen = True
         delete_records()
         continue
 
-    elif user_input1.lower == 'b':
+    elif user_input1.lower() == 'b':
         chosen = True
         delete_all_tables()
         continue
 
-    elif user_input1.lower == 'c':
+    elif user_input1.lower() == 'c':
         chosen = True
         continue
 
