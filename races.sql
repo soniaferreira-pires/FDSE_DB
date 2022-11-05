@@ -37,7 +37,7 @@ CREATE TABLE participation_details (
  net_time TIME,                    
  place INTEGER NOT NULL,
  place_in_class INTEGER NOT NULL,
- age INTEGER NOT NULL CHECK (age >= 17),    --- field to be calc. with birth_date
+ age INTEGER NOT NULL CHECK (age >= 0),    --- field to be calc. with birth_date
  team_id SERIAL REFERENCES team(team_id) ON DELETE SET NULL ON UPDATE CASCADE,
  runner_id SERIAL NOT NULL REFERENCES runner(runner_id) ON DELETE SET NULL ON UPDATE CASCADE,
  ageclass_id SERIAL NOT NULL REFERENCES age_class(ageclass_id) ON DELETE SET NULL ON UPDATE CASCADE,

@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import psycopg2
 import datetime
+import csv
+import re
+import glob
 
 # -------------------------------------------------- WELCOME ----------------------------------------------------------#
 print(r"""____    __    ____  _______  __        ______   ______   .___  ___.  _______
@@ -63,7 +66,7 @@ while not chosen:
     user_input1 = input('Please choose what you would like to do (enter the letter describing your choice): \n'
                         '(a) I wish to delete all records from the database (in public schema) \n'
                         '(b) I wish to delete all records AND tables from the database (in public schema) \n'
-                        '(c) I don\'t wish to delete any record nor tables from the database (in public schema) \n')
+                        '(c) I wish to start a database from scratch \n')
 
     if user_input1.lower() == 'a':
         chosen = True
@@ -84,7 +87,7 @@ while not chosen:
         continue
 
 # ---------------------------------------------- CREATE DATABASE ------------------------------------------------------#
-if user_input1 == 'b':
+if user_input1.lower() == 'b' or user_input1.lower() == 'c':
     print("-----------------STARTING CREATING TABLES--------------------")
 
     sql_create = open('races.sql', 'r')
@@ -99,7 +102,8 @@ if user_input1 == 'b':
     # con.close()
 
     print("created the tables in DB")
-    print("--------------FINNISHED CREATING TABLES--------------------")
+    print("------------------FINISHED CREATING TABLES---------------------")
+
 
 # ------------------------------------------------ LOAD DATASET -------------------------------------------------------#
 
@@ -207,6 +211,7 @@ data_team.drop_duplicates(subset=None, keep='first', inplace=True)
 data_team.dropna(axis='rows', inplace=True)
 team_idx_lst = [item for item in range(1, (len(data_team.index)) + 1)]
 data_team.insert(loc=0, column='team_idx', value=team_idx_lst)
+data_team.to_csv("tmp-data_team.csv", sep="%", index=False, header=False, encoding="utf-8")
 
 print("TEAM TABLE DATAFRAME was successfully created")
 
@@ -216,6 +221,7 @@ data_runner = data_idx.loc[:, ['name', 'sex', 'nation', 'birth_date']].copy()
 data_runner.drop_duplicates(subset=None, keep='first', inplace=True)
 runner_idx_lst = [item for item in range(1, (len(data_runner.index)) + 1)]
 data_runner.insert(loc=0, column='runner_idx', value=runner_idx_lst)
+data_runner.to_csv("tmp-data_runner.csv", sep="%", index=False, header=False, encoding="utf-8")
 
 print("RUNNER TABLE DATAFRAME was successfully created")
 
@@ -226,6 +232,7 @@ data_event_type.drop_duplicates(subset=None, keep='first', inplace=True)
 data_event_type.dropna(axis='rows', inplace=True)
 event_type_idx_lst = [item for item in range(1, (len(data_event_type.index)) + 1)]
 data_event_type.insert(loc=0, column='event_type_idx', value=event_type_idx_lst)
+data_event_type.to_csv("tmp-data_event_type.csv", sep="%", index=False, header=False, encoding="utf-8")
 
 print("EVENT_TYPE TABLE DATAFRAME was successfully created")
 
@@ -236,6 +243,7 @@ data_age_class.drop_duplicates(subset=None, keep='first', inplace=True)
 data_age_class.dropna(axis='rows', inplace=True)
 age_class_idx_lst = [item for item in range(1, (len(data_age_class.index)) + 1)]
 data_age_class.insert(loc=0, column='age_class_idx', value=age_class_idx_lst)
+data_age_class.to_csv("tmp-data_age_class.csv", sep="%", index=False, header=False, encoding="utf-8")
 
 print("AGE_CLASS TABLE DATAFRAME was successfully created")
 
@@ -255,7 +263,9 @@ for i in range(len(data_event)):
 print("DATA_EVENT TABLE DATAFRAME was successfully created")
 
 data_event2 = data_event.loc[:, ['event_idx', 'distance', 'event_year', 'event_type_idf']].copy()
+data_event2.to_csv("tmp-data_event2.csv", sep="%", index=False, header=False, encoding="utf-8")
 print("DATA_EVENT 2 TABLE DATAFRAME was successfully created")
+print("The next step takes around 40 min.")
 
 # PARTICIPATION DETAILS TABLE
 
@@ -279,6 +289,7 @@ for i in range(len(data_participation_details)):
 
     data_participation_details.iloc[i, 16] = runner_id
 
+print("....... and we're done, thank you!")
 print("DATA_PARTICIPATION_DETAILS TABLE DATAFRAME was successfully created")
 
 data_participation_details2 = data_participation_details.copy()
@@ -300,12 +311,12 @@ print("DATA_PARTICIPATION_DETAILS2: event_id fk TABLE DATAFRAME was successfully
 for i in range(len(data_participation_details2)):
     team = data_participation_details2.iloc[i, 7]
     if (team is not None) and (not pd.isna(team)):
-        if (team.lower() != 'individual') or (team.lower() != 'indibidual'):
-            team_id = int(data_team.loc[data_team['team'] == team]['team_idx'])
+        if (team.lower() != 'individual') and (team.lower() != 'indibidual'):
+            team_id = data_team.loc[data_team['team'] == team]['team_idx'].to_string(index=False)
         else:
-            team_id = np.nan
+            team_id = ""
     else:
-        team_id = np.nan
+        team_id = ""
 
     data_participation_details2.iloc[i, 15] = team_id
 
@@ -315,94 +326,86 @@ data_participation_details3 = data_participation_details2.loc[:, ['part_det_idx'
                                                                   'net_time', 'place', 'place_in_class',
                                                                   'age', 'team_idf', 'runner_idf',
                                                                   'ageclass_idf', 'event_idf']].copy()
-
+data_participation_details3['official_time'] = data_participation_details3['official_time'].apply(
+    lambda x: datetime.datetime.utcfromtimestamp(x).strftime("%H:%M:%S")
+    if x > 0 else datetime.datetime.utcfromtimestamp(0).strftime("%H:%M:%S"))
+data_participation_details3['net_time'] = data_participation_details3['net_time'].apply(
+    lambda x: datetime.datetime.utcfromtimestamp(x).strftime("%H:%M:%S")
+    if x > 0 else datetime.datetime.utcfromtimestamp(0).strftime("%H:%M:%S"))
+# data_participation_details3['team_idf'] = data_participation_details3['team_idf'].apply(
+#    lambda x: None if x == "null" else int(x))
+data_participation_details3.to_csv("tmp-data_participation_details3.csv", sep="%", index=False, header=False,
+                                   encoding="utf-8")
 print("DATA_PARTICIPATION_DETAILS3: TABLE DATAFRAME was successfully created")
 
 # --------------------------------------------- POPULATE DATABASE -----------------------------------------------------#
 
 print("----------------STARTING POPULATING DATABASE-------------------")
 
-# TABLE TEAM
+# CLEAN BACKSLASH
+def clean_csv(input_csv_file):
+    for i in glob.glob(input_csv_file):
+        read = open(i, 'r', encoding="utf-8")
+        reader = read.read()
+        csvre = re.sub(r"\\", r"\\\\", str(reader))
+        write = open(i, 'w', encoding="utf-8")
+        write.write(csvre)
+        read.close()
+        write.close()
 
-for index, row in data_team.iterrows():
-    team_idx = row['team_idx']
-    team = row['team']
+
+# TABLE TEAM
+clean_csv('tmp-data_team.csv')
+with open('tmp-data_team.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO team VALUES (%s, %s);", (team_idx, team))
+    cur.copy_from(f, 'team', sep="%", columns=('team_id', 'team_name'))
     con.commit()
 
 print("TEAM TABLE was successfully populated")
 
 # TABLE RUNNER
-
-for index, row in data_runner.iterrows():
-    runner_idx = row['runner_idx']
-    name = row['name']
-    sex = row['sex']
-    nation = row['nation']
-    birth_date = row['birth_date']
+clean_csv('tmp-data_runner.csv')
+with open('tmp-data_runner.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO runner VALUES (%s, %s, %s, %s, %s);", (runner_idx, name, sex, nation, birth_date))
+    cur.copy_from(f, 'runner', sep="%", columns=('runner_id', 'runner_name', 'sex', 'nation', 'birthdate'))
     con.commit()
 
 print("RUNNER TABLE was successfully populated")
 
 # TABLE AGE_CLASS
-
-for index, row in data_age_class.iterrows():
-    age_class_idx = row['age_class_idx']
-    age_class = row['age_class']
+clean_csv('tmp-data_age_class.csv')
+with open('tmp-data_age_class.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO age_class VALUES (%s, %s);", (age_class_idx, age_class))
+    cur.copy_from(f, 'age_class', sep="%", columns=('ageclass_id', 'age_class'))
     con.commit()
 
 print("AGE_CLASS TABLE was successfully populated")
 
 # TABLE EVENT_TYPE
-
-for index, row in data_event_type.iterrows():
-    event_type_idx = row['event_type_idx']
-    event = row['event']
+clean_csv('tmp-data_event_type.csv')
+with open('tmp-data_event_type.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO event_type VALUES (%s, %s);", (event_type_idx, event))
+    cur.copy_from(f, 'event_type', sep="%", columns=('eventtype_id', 'eventtype_name'))
     con.commit()
 
 print("EVENT_TYPE TABLE was successfully populated")
 
 # TABLE EVENT
-
-for index, row in data_event2.iterrows():
-    event_idx = row['event_idx']
-    distance = row['distance']
-    event_year = row['event_year']
-    event_type_idf = row['event_type_idf']
+clean_csv('tmp-data_event2.csv')
+with open('tmp-data_event2.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO event VALUES (%s, %s, %s, %s);", (event_idx, distance, event_year, event_type_idf))
+    cur.copy_from(f, 'event', sep="%", columns=('event_id', 'distance', 'event_year', 'eventtype_id'))
     con.commit()
 
 print("EVENT TABLE was successfully populated")
 
 # TABLE PARTICIPATION_DETAILS
-
-for index, row in data_participation_details3.iterrows():
-    part_det_idx = row['part_det_idx']
-    bib = row['bib']
-    official_time = datetime.datetime.fromtimestamp(row['official_time']).strftime("%H:%M:%S")
-    net_time = datetime.datetime.fromtimestamp(row['net_time']).strftime("%H:%M:%S")
-    place = row['place']
-    place_in_class = row['place_in_class']
-    age = row['age']
-    runner_idf = row['runner_idf']
-    ageclass_idf = row['ageclass_idf']
-    event_idf = row['event_idf']
-    if not pd.isna(row['team_idf']):
-        team_idf = int(row['team_idf'])
-    else:
-        team_idf = None
+clean_csv('tmp-data_participation_details3.csv')
+with open('tmp-data_participation_details3.csv', 'r', encoding="utf-8") as f:
     cur = con.cursor()
-    cur.execute("INSERT INTO participation_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                (part_det_idx, bib, official_time, net_time, place, place_in_class,
-                 age, team_idf, runner_idf, ageclass_idf, event_idf))
+    cur.copy_from(f, 'participation_details', sep="%", columns=('partdet_id', 'bib', 'official_time', 'net_time',
+                                                                'place', 'place_in_class', 'age', 'team_id',
+                                                                'runner_id', 'ageclass_id', 'event_id'), null="")
     con.commit()
 
 print("PARTICIPATION_DETAILS TABLE was successfully populated")
