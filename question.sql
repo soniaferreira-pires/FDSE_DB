@@ -84,6 +84,141 @@ LIMIT 50
 
 
 
+-- catia
+SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time, t2.official_time - t1.official_time AS time
+FROM
+	(SELECT * 
+		FROM runner JOIN 
+		     participation_details USING(runner_id) JOIN
+		     event USING(event_id) JOIN
+		     event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+	JOIN
+	(SELECT *
+		FROM runner JOIN 
+		    participation_details USING(runner_id) JOIN
+		    event USING(event_id) JOIN
+		    event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+		USING (runner_id)
+WHERE t1.event_year = t2.event_year + 1
+LIMIT 50
+
+
+-- opção 1
+SELECT *
+FROM (SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time,  t2.official_time – t1.official_time AS time
+FROM
+	(SELECT * 
+		FROM runner JOIN 
+		     participation_details USING(runner_id) JOIN
+		     event USING(event_id) JOIN
+		     event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+	JOIN
+	(SELECT *
+		FROM runner JOIN 
+		    participation_details USING(runner_id) JOIN
+		    event USING(event_id) JOIN
+		    event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+		USING (runner_id)
+WHERE t2.event_year = t1.event_year + 1)) AS result
+WHERE time <= ALL (SELECT time
+		FROM runner JOIN 
+		     participation_details USING(runner_id) JOIN
+		     event USING(event_id) JOIN
+		     event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+	JOIN
+	(SELECT *
+		FROM runner JOIN 
+		    participation_details USING(runner_id) JOIN
+		    event USING(event_id) JOIN
+		    event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+		USING (runner_id)
+WHERE t2.event_year = t1.event_year + 1)
+)
+
+--opcç\ao2
+SELECT *
+	FROM 
+	(SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time,  t2.official_time – t1.official_time AS time
+		FROM
+		(SELECT * 
+			FROM runner JOIN 
+			     participation_details USING(runner_id) JOIN
+			     event USING(event_id) JOIN
+			     event_type USING(eventtype_id)
+			WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+		JOIN
+		(SELECT *
+			FROM runner JOIN 
+			    participation_details USING(runner_id) JOIN
+			    event USING(event_id) JOIN
+			    event_type USING(eventtype_id)
+			WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+			USING (runner_id)
+		WHERE t2.event_year = t1.event_year + 1)) AS result
+		WHERE time = min(SELECT time
+				FROM runner JOIN 
+				     participation_details USING(runner_id) JOIN
+				     event USING(event_id) JOIN
+				     event_type USING(eventtype_id)
+				WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+			JOIN
+			(SELECT *
+				FROM runner JOIN 
+				    participation_details USING(runner_id) JOIN
+				    event USING(event_id) JOIN
+				    event_type USING(eventtype_id)
+				WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+				USING (runner_id)
+		WHERE t2.event_year = t1.event_year + 1) as t4
+)
+
+
+
+#-----
+SELECT *
+FROM (SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time,  t2.official_time – t1.official_time AS time
+FROM
+	(SELECT * 
+		FROM runner JOIN 
+		     participation_details USING(runner_id) JOIN
+		     event USING(event_id) JOIN
+		     event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+	JOIN
+	(SELECT *
+		FROM runner JOIN 
+		    participation_details USING(runner_id) JOIN
+		    event USING(event_id) JOIN
+		    event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+		USING (runner_id)
+WHERE t2.event_year = t1.event_year + 1)) AS result
+WHERE time = min(SELECT time
+		FROM runner JOIN 
+		     participation_details USING(runner_id) JOIN
+		     event USING(event_id) JOIN
+		     event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
+	JOIN
+	(SELECT *
+		FROM runner JOIN 
+		    participation_details USING(runner_id) JOIN
+		    event USING(event_id) JOIN
+		    event_type USING(eventtype_id)
+		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
+		USING (runner_id)
+WHERE t2.event_year = t1.event_year + 1) as subq
+)
+
+
+
+
 
 
 

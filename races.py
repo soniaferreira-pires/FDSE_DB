@@ -3,7 +3,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import W, E, N, S
 from tkinter import messagebox
-# from tkinter import Menu
 import psycopg2
 import pwinput
 import datetime
@@ -13,14 +12,14 @@ import datetime
 connected = False
 while not connected:
 
-    # username = input('Type your database username: ')
-    # password = pwinput.pwinput(prompt='Type your database password: ', mask='*')
+    username = input('Type your database username: ')
+    password = pwinput.pwinput(prompt='Type your database password: ', mask='*')
 
     try:
         con = psycopg2.connect(
-            database="fced_sonia_ferreira",  # your database is the same as your username #############CHANGE CHANGE CHANGE CHANGE CHANGE username
-            user="fced_sonia_ferreira",  # your username #############CHANGE CHANGE CHANGE CHANGE CHANGE username
-            password="Obrigado25.",  # your password #############CHANGE CHANGE CHANGE CHANGE CHANGE password
+            database=username,  # your database is the same as your username 
+            user=username,  # your username 
+            password=password,  # your password
             host="dbm.fe.up.pt",  # the database host
             port="5433",
             options='-c search_path=public') # use the schema you want to connect to 
@@ -43,7 +42,7 @@ class DisplayRaces:
     def __init__(self):
         self.win = tk.Tk()
         # set initial window size (width, height)
-        self.win.minsize(900, 600)
+        self.win.minsize(900, 400)
         self.win.attributes("-topmost", True)
         self.win.title("Races Events - Management Studio")
         # call tabs into layout
@@ -472,10 +471,6 @@ class DisplayRaces:
         # ---- End DELETE TAB
 
 
-
-
-
-
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- Start FAQS TAB Content -----------------------------------
         faqs_tab = ttk.Frame(tab_control)
@@ -487,7 +482,7 @@ class DisplayRaces:
 
         def sel1():
             ttk.Label(ftab_frame, text= (" ")).grid(row=6, sticky='WE',column=0)
-            ttk.Label(ftab_frame, text= var1 + ("by Event ID, Distance, Event Year, Event Type ID")).grid(row=7, sticky='WE',column=0)
+            t1 = ttk.Label(ftab_frame, text= var1 + ("by Event ID, Distance, Event Year, Event Type ID")).grid(row=7, sticky='WE',column=0)
 
             f1listbox = Listbox(ftab_frame, width=75)
             #view_rows = ''
@@ -496,7 +491,6 @@ class DisplayRaces:
             with con:
                 cur.execute(f'SELECT * FROM event ORDER by event_id LIMIT 1000')
                 result = cur.fetchall(); #all
-                print(result)
                 con.commit()
                        
             for row in result: 
@@ -512,20 +506,74 @@ class DisplayRaces:
             f1listbox.grid(row=8, sticky='WE')
             f1listbox.config(yscrollcommand=scrollbar.set)
             scrollbar.config(command=f1listbox.yview)
+            t1.delete(0, tk.END)
+            
 
         def sel2():
-            print ("2")
+            ttk.Label(ftab_frame, text= (" ")).grid(row=6, sticky='WE',column=0)
+            t2 = ttk.Label(ftab_frame, text= var2 + ("by Runner Name, Event Type, Distance, Event Year")).grid(row=7, sticky='WE',column=0)
+
+            f1listbox = Listbox(ftab_frame, width=75)
+
+            cur = con.cursor()
+            with con:
+                cur.execute(f' SELECT DISTINCT runner.runner_name, event_type.eventtype_name , event.distance, event.event_year FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) WHERE (event.distance, official_time) IN(SELECT event.distance, MIN(official_time) FROM participation_details JOIN event USING (event_id) GROUP BY event.distance) ORDER BY event.distance LIMIT 1000')
+                result = cur.fetchall(); #all
+                con.commit()
+                       
+            for row in result: 
+                f1listbox.insert(END, '#' + str(row[0]) + ',  '
+                               + str(row[1]) + ',  '
+                               + str(row[2]) + ',  '
+                               + str(row[3]) + '\n')
+            
+            view_label = ttk.Label(ftab_frame, text="(Scrollable list!)")
+            view_label.grid(row=7, padx=5, pady=2, sticky='SE')
+
+            scrollbar = Scrollbar(rtab_frame)
+            f1listbox.grid(row=8, sticky='WE')
+            f1listbox.config(yscrollcommand=scrollbar.set)
+            scrollbar.config(command=f1listbox.yview)
+            t2.delete(0, tk.END)
 
         def sel3():
-            print ("3")
-        
-        def sel4():
-            print ("4")
+            ttk.Label(ftab_frame, text= (" ")).grid(row=8, sticky='WE',column=0)
+            t = ttk.Label(ftab_frame, text= var3 + ("by  Event Name, Year, Average Time")).grid(row=8, sticky='WE',column=0)
 
-        def view_faqs():
-            flistbox = Listbox(ftab_frame, width=75)
-            view_rows = ''
+            tk.Label(ftab_frame, text="Race Distance:  ").grid(row=6, sticky=W, padx=5, pady=2)
+            f_rcdist= tk.Entry(ftab_frame, width=25 )
+            f_rcdist.grid(row=6)
 
+            view_faqs_btn = tk.Button(ftab_frame, text='View Races', width=45)
+            view_faqs_btn['command'] = lambda: view_faqs(f_rcdist)
+            view_faqs_btn.grid(row=11, sticky='WE', padx=5)
+
+            view_faqs_btn.delete(0, tk.END)
+            view_faqs_btn.destroy
+            t.delete(0, tk.END)
+            f_rcdist.delete(0, tk.END)
+
+        def view_faqs(f_rcdist):
+            f1listbox = Listbox(ftab_frame, width=75)
+            f_rdist2 = f_rcdist.get()
+            
+            cur = con.cursor()
+            with con:
+                if len(f_rdist2)!= 0:
+                    cur.execute(f'SELECT event_type.eventtype_name, event.event_year, AVG(participation_details.official_time) FROM event_type JOIN event USING(eventtype_id) JOIN participation_details USING(event_id) WHERE event.distance = {f_rdist2} GROUP BY event_type.eventtype_name, event.event_year LIMIT 1000')
+                
+                result = cur.fetchall(); #all
+                con.commit()
+                        
+            for row in result: 
+                f1listbox.insert(END, '#' + str(row[0]) + ',  '
+                            + str(row[1]) + ',  '
+                            + str(row[2]) + '\n')
+            
+            scrollbar = Scrollbar(rtab_frame)
+            f1listbox.grid(row=10, sticky='WE')
+            f1listbox.config(yscrollcommand=scrollbar.set)
+            scrollbar.config(command=f1listbox.yview)
 
         var1 = "Show all races:"
         f_race = ttk.Radiobutton(ftab_frame, text="Show Races.", command=sel1)
@@ -535,72 +583,15 @@ class DisplayRaces:
         f_toprunner = ttk.Radiobutton(ftab_frame, text="Top Runner for each distance?", command=sel2, variable= var1)
         f_toprunner.grid(row=3, sticky=W)
         
-        var3 = "Progress of a single runner on a single distance throughout the years:"
-        f_3 = ttk.Radiobutton(ftab_frame, text="Progress of a single runner on a single distance throughout the years?", command=sel3)
+        var3 = "Get all Events by distance for each year:"
+        f_3 = ttk.Radiobutton(ftab_frame, text="Get all Events by distance and the average time for each year?", command=sel3)
         f_3.grid(row=4, sticky=W)
 
-        var4 = "What was the best time improvement in two consecutive maratona  races?"
-        f_4 = ttk.Radiobutton(ftab_frame, text="What was the best time improvement in two consecutive maratona  races?", command=sel4)
-        f_4.grid(row=5, sticky=W)
-
-        # tk.Label(ftab_frame, text="Runner ID:  ").grid(row=6, sticky=W, padx=5, pady=2)
-        # d_rid = tk.Entry(ftab_frame, width=25)
-        # d_rid.grid(row=6)
-
-        # tk.Label(ftab_frame, text="Runner Name:  ").grid(row=7, sticky=W, padx=5, pady=2)
-        # f_rname = tk.Entry(ftab_frame, width=25 )
-        # f_rname.grid(row=7)
-
-        # ttk.Label(ftab_frame, 
-        #           text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=8, sticky='WE',column=0)
-
-        
-        # view_faqs_btn = tk.Button(ftab_frame, text='View Runners', width=45)
-        # view_faqs_btn['command'] = lambda: view_faqs()
-        # view_faqs_btn.grid(row=7, sticky='WE', padx=5)
-        
-
-
-        def faqs_record():
-            f_rid3 = faqs_field.get()
-
-            # cur = con.cursor()
-            # with con:
-            #     cur.execute(f'SELECT * FROM runner WHERE runner_id = {d_rid3}')
-            #     result = cur.fetchone()
-            #     con.commit()
-            # if result == None:
-            #     messagebox.showinfo("info", message="Record ID: " + str(d_rid3) + " , doesn't exist! \nChoose a valid ID.", icon='error', parent=self.win )
-            # else:
-            #     cur = con.cursor()
-            #     with con:
-            #         cur.execute(f"DELETE FROM runner WHERE runner_id = {d_rid3}")
-            #         messagebox.showinfo(title="info", message="record ID: " + str(d_rid3) + ", successfully deleted!", parent=self.win)
-            #         con.commit()
-
-            # clear_fields() 
-            # view_delete_runners()
-
-        # tk.Label(ftab_frame, text="Insert Runner ID for DEL:  ").grid(row=10, sticky=W, padx=5, pady=2)
-        # faqs_field = Entry(ftab_frame, width=10)
-        # faqs_field.grid(row=11, padx=5, pady=5)
-        # faqs_runner_btn = tk.Button(ftab_frame, text='Delete Record', width=15)
-        # faqs_runner_btn['command'] = lambda: faqs_record()
-        # faqs_runner_btn.grid(row=12, sticky='E', padx=5, pady=5)
-        # ---- End FAQS TAB
-
-
-
-
-
-
-
-
-
+        clear_fields() 
+    
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- TABS FUNCS -----------------------------------
         tab_control.grid()  # to make tabs visible
-
 
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- MENU BAR ACTIONS -----------------------------------
@@ -623,7 +614,7 @@ class DisplayRaces:
         # help/about menu bar items
         about_menu = Menu(menu_bar, tearoff=0)
         about_menu.add_command(label="Runners Data Management Application, "
-                                     "Ⓒ 2022Edition MECD - Databases - GROUP8")   # ----- ????????CHECK THE GROUP NR
+                                     "Ⓒ 2022Edition MECD - Databases - GROUP8")  
         menu_bar.add_cascade(label="About", menu=about_menu)
 
         self.win.mainloop()
