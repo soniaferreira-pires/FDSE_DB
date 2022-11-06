@@ -471,6 +471,113 @@ class DisplayRaces:
         # ---- End DELETE TAB
 
 
+# ---------------------------------------------------------------------------------------------------
+        # -------------------------------------- START OTHER QUESTIONS TAB Content -----------------------------------
+        otherq_tab = ttk.Frame(tab_control)
+        tab_control.add(otherq_tab, text="Other Interesting Facts")
+
+        oqtab_frame = ttk.LabelFrame(otherq_tab, text="Show different records:")
+        oqtab_frame.grid(row=0, column=0, padx=5, pady=5)
+        ttk.Label(oqtab_frame, text="What would you like to know?").grid(row=0, sticky="W", column=0)
+
+
+        # Other Questions Tab Selection Function
+        def otherq_sel():
+            selection = otherq_sel_var.get()
+
+            if selection == 1:
+                cur = con.cursor()
+                cur.execute(f'SELECT event.event_id, eventtype_name FROM event JOIN event_type USING (eventtype_id) LIMIT 1000')
+                result = cur.fetchall()
+
+
+                # Label for UI/UX purposes
+                ttk.Label(oqtab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
+                ttk.Label(oqtab_frame, text="Show all the different races by Event ID, Event Name").grid(row=7, sticky='WE', column=0)
+                
+                # Create a new Listbox to show results
+                listbox = Listbox(oqtab_frame, width=75)
+
+                for row in result: 
+                    listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
+                
+                view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
+                view_label.grid(row=7, padx=5, pady=2, sticky='SE')
+
+                scrollbar = Scrollbar(oqtab_frame)
+                listbox.grid(row=8, sticky='WE')
+                listbox.config(yscrollcommand=scrollbar.set)
+                scrollbar.config(command=listbox.yview)
+
+            elif selection == 2:
+                cur = con.cursor()
+                cur.execute(f'SELECT runner_name, eventtype_name FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) LIMIT 1000')
+                result = cur.fetchall()
+
+                # Label for UI/UX purposes
+                ttk.Label(oqtab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
+                ttk.Label(oqtab_frame, text="Show every race by Runner, Event Name").grid(row=7, sticky='WE', column=0)
+
+                # Create a new Listbox to show results
+                listbox = Listbox(oqtab_frame, width=75)
+
+                for row in result: 
+                    listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
+                
+                view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
+                view_label.grid(row=7, padx=5, pady=2, sticky='SE')
+
+                scrollbar = Scrollbar(oqtab_frame)
+                listbox.grid(row=8, sticky='WE')
+                listbox.config(yscrollcommand=scrollbar.set)
+                scrollbar.config(command=listbox.yview)
+            
+            elif selection == 3:
+                cur = con.cursor()
+                cur.execute(f'SELECT runner_name, event.distance FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) GROUP BY runner_name, event.distance, official_time HAVING official_time <= ALL(SELECT official_time FROM participation_details)')
+                result = cur.fetchall()
+
+                # Label for UI/UX purposes
+                ttk.Label(oqtab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
+                ttk.Label(oqtab_frame, text="Show runner by Name, Distance").grid(row=7, sticky='WE', column=0)
+
+                # Create a new Listbox to show results
+                listbox = Listbox(oqtab_frame, width=75)
+
+                for row in result: 
+                    listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
+                
+                view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
+                view_label.grid(row=7, padx=5, pady=2, sticky='SE')
+
+                scrollbar = Scrollbar(oqtab_frame)
+                listbox.grid(row=8, sticky='WE')
+                listbox.config(yscrollcommand=scrollbar.set)
+                scrollbar.config(command=listbox.yview)
+            
+            # Debug prints
+            # print(f"Selection: {selection}")
+            # print(f"Result: {result}")
+
+
+
+        # Selection variable
+        otherq_sel_var = IntVar()
+
+        # Interesting Fact Nr. 1 - Show a specific race 
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show all the different races", variable=otherq_sel_var, value=1, command=otherq_sel)
+        event_rbutton.grid(row=2, sticky=W)
+
+        # Interesting Fact Nr. 2 - Show every race that the runner has competed in
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show every race that the runner has competed in", variable=otherq_sel_var, value=2, command=otherq_sel)
+        event_rbutton.grid(row=3, sticky=W)
+
+        # Interesting Fact Nr. 3 - Show top runner overall
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show top runner overall", variable=otherq_sel_var, value=3, command=otherq_sel)
+        event_rbutton.grid(row=4, sticky=W)
+        # -------------------------------------- END OTHER QUESTIONS TAB Content -----------------------------------
+
+
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- Start FAQS TAB Content -----------------------------------
         faqs_tab = ttk.Frame(tab_control)
