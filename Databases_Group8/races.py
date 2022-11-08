@@ -7,8 +7,7 @@ import psycopg2
 import pwinput
 import datetime
 
-
-#-------------------------------------------- CONNECT TO  DATABASE ---------------------------------------------------#
+# -------------------------------------------- CONNECT TO  DATABASE ---------------------------------------------------#
 connected = False
 while not connected:
 
@@ -22,7 +21,7 @@ while not connected:
             password=password,  # your password
             host="dbm.fe.up.pt",  # the database host
             port="5433",
-            options='-c search_path=public') # use the schema you want to connect to 
+            options='-c search_path=public')  # use the schema you want to connect to
         connected = True
 
     except psycopg2.OperationalError:
@@ -34,11 +33,10 @@ while not connected:
 
 
 class DisplayRaces:
-
-
     """
     Display DB Functions
     """
+
     def __init__(self):
         self.win = tk.Tk()
         # set initial window size (width, height)
@@ -54,18 +52,18 @@ class DisplayRaces:
         Tabs are created and the content is nested in a 'LabelFrame'
         Create Tab Content
         """
-        
+
         # ----- Create Record tab control and creation ----
         tab_control = ttk.Notebook(self.win)  # control for tab
         create_tab = ttk.Frame(tab_control)  # create tab
 
-        #-----------------------------------------------------------------------------------------------------------------#
-        #-------------------------------------------- READ TAB Runners ---------------------------------------------------#
+        # -----------------------------------------------------------------------------------------------------------------#
+        # -------------------------------------------- READ TAB Runners ---------------------------------------------------#
         read_tab = ttk.Frame(tab_control)  # create tab
         tab_control.add(read_tab, text="Read Runners Record(s)")  # add the tab / nest read record tab
-        rtab_frame = ttk.LabelFrame(read_tab,  text=" View Runners ")
+        rtab_frame = ttk.LabelFrame(read_tab, text=" View Runners ")
         rtab_frame.grid(row=0, column=0, padx=5, pady=5)
-     
+
         def view_runners():
             rlistbox = Listbox(rtab_frame, width=75)
             view_rows = ''
@@ -77,23 +75,25 @@ class DisplayRaces:
 
             cur = con.cursor()
             with con:
-                if len(runner_id)!= 0 and len(runner_name) == 0:
+                if len(runner_id) != 0 and len(runner_name) == 0:
                     cur.execute(f'SELECT * FROM runner WHERE runner_id = {runner_id} ORDER by runner_id LIMIT 1000')
-                elif len(runner_id)== 0 and len(runner_name) != 0:
-                    cur.execute(f'SELECT * FROM runner WHERE runner_name LIKE {runner_name} ORDER by runner_id LIMIT 1000')
-                elif len(runner_id)!= 0 and len(runner_name) != 0:
-                    cur.execute(f'SELECT * FROM runner WHERE runner_id = {runner_id} AND runner_name LIKE {runner_name} ORDER by runner_id LIMIT 1000')
+                elif len(runner_id) == 0 and len(runner_name) != 0:
+                    cur.execute(
+                        f'SELECT * FROM runner WHERE runner_name LIKE {runner_name} ORDER by runner_id LIMIT 1000')
+                elif len(runner_id) != 0 and len(runner_name) != 0:
+                    cur.execute(
+                        f'SELECT * FROM runner WHERE runner_id = {runner_id} AND runner_name LIKE {runner_name} ORDER by runner_id LIMIT 1000')
                 else:
                     cur.execute(f'SELECT * FROM runner ORDER by runner_id LIMIT 1000 OFFSET 100')
-                result = cur.fetchall(); #all
+                result = cur.fetchall();  # all
                 con.commit()
 
-            for row in result: 
+            for row in result:
                 rlistbox.insert(END, '#' + str(row[0]) + ',  '
-                               + str(row[1]) + ',  '
-                               + str(row[2]) + ',  '
-                               + str(row[3]) + ',  '
-                               + str(row[4]) + '\n')
+                                + str(row[1]) + ',  '
+                                + str(row[2]) + ',  '
+                                + str(row[3]) + ',  '
+                                + str(row[4]) + '\n')
 
             view_label = ttk.Label(rtab_frame, text="(Scrollable list!)")
             view_label.grid(row=6, padx=5, pady=2, sticky='SE')
@@ -108,19 +108,21 @@ class DisplayRaces:
         r_rid.grid(row=1)
 
         tk.Label(rtab_frame, text="Runner Name:  ").grid(row=2, sticky=W, padx=5, pady=2)
-        r_rname = tk.Entry(rtab_frame, width=25 )
+        r_rname = tk.Entry(rtab_frame, width=25)
         r_rname.grid(row=2)
 
-        ttk.Label(rtab_frame, 
-                  text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4, sticky='WE',column=0)
+        ttk.Label(rtab_frame,
+                  text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4,
+                                                                                                            sticky='WE',
+                                                                                                            column=0)
 
         view_runners_btn = tk.Button(rtab_frame, text='View Runners', width=45)
         view_runners_btn['command'] = lambda: view_runners()
         view_runners_btn.grid(row=7, sticky='WE', padx=5)
         # ---- End read tab
 
-        #-------------------------------------------------------------------------------------------------------------------#
-        #-------------------------------------------- CREATE TAB Runners ---------------------------------------------------#
+        # -------------------------------------------------------------------------------------------------------------------#
+        # -------------------------------------------- CREATE TAB Runners ---------------------------------------------------#
         tab_control.add(create_tab, text="Create Runners Record(s)")  # add the tab
         ctab_frame = ttk.LabelFrame(create_tab, text=" Add New Runner: \n(Runner ID will be generated automatically!) ")
         ctab_frame.grid(row=0, column=0, padx=5, pady=5)
@@ -167,21 +169,29 @@ class DisplayRaces:
             runner_birthdate = rbirthdate.get()
 
             # validations!!
-            if len(runner_name) == 0: nm_error = 1 
-            else:nm_error = 0
-            if len(runner_nation) != 2: nt_error = 1 
-            else:nt_error = 0
-            if runner_sex == 'M' or runner_sex == 'F' : sx_error = 0
-            else:sx_error = 1
+            if len(runner_name) == 0:
+                nm_error = 1
+            else:
+                nm_error = 0
+            if len(runner_nation) != 2:
+                nt_error = 1
+            else:
+                nt_error = 0
+            if runner_sex == 'M' or runner_sex == 'F':
+                sx_error = 0
+            else:
+                sx_error = 1
             dt_error = ""
-            try: 
+            try:
                 datetime.datetime.strptime(runner_birthdate, '%Y-%m-%d')
                 dt_error == 0
             except ValueError:
                 dt_error = 1
 
-            if nt_error == 1 or sx_error == 1 or dt_error == 1 or nm_error ==1 : stop = 1
-            else: stop = 0
+            if nt_error == 1 or sx_error == 1 or dt_error == 1 or nm_error == 1:
+                stop = 1
+            else:
+                stop = 0
 
             if stop != 1:
                 cur = con.cursor()
@@ -189,48 +199,66 @@ class DisplayRaces:
                     cur.execute(f'SELECT runner_id FROM runner ORDER by runner_id DESC LIMIT 1')
                     result = cur.fetchone()
                     new_rid = result[0] + 1
-                    cur.execute(f"INSERT INTO runner VALUES ('{new_rid}', '{runner_name}', '{runner_sex}', '{runner_nation}', '{runner_birthdate}') ")
-                    messagebox.showinfo(title="info", message="record ID: " + str(new_rid) + ", " + runner_name + ", " + runner_sex + ", " + runner_nation +
-                                        ", " + runner_birthdate + ", successfully inserted!", parent=self.win)
+                    cur.execute(
+                        f"INSERT INTO runner VALUES ('{new_rid}', '{runner_name}', '{runner_sex}', '{runner_nation}', '{runner_birthdate}') ")
+                    messagebox.showinfo(title="info", message="record ID: " + str(
+                        new_rid) + ", " + runner_name + ", " + runner_sex + ", " + runner_nation +
+                                                              ", " + runner_birthdate + ", successfully inserted!",
+                                        parent=self.win)
                     con.commit()
-                clear_fields() #clean the fields
+                clear_fields()  # clean the fields
             else:
                 if nt_error == 1 and sx_error == 0 and dt_error == 0 and nm_error == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation", icon='error', parent=self.win )
-                elif nt_error == 0 and sx_error == 1 and dt_error == 0 and nm_error == 0 :
-                    messagebox.showinfo("info", "Please validate the following field(s): Sex", icon='error', parent=self.win )
-                elif nt_error == 0 and sx_error == 0 and dt_error == 1 and nm_error == 0 :
-                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd)", icon='error', parent=self.win )
-                elif nt_error == 0 and sx_error == 0 and dt_error == 0 and nm_error == 1 :
-                    messagebox.showinfo("info", "Please validate the following field(s): Name", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation", icon='error',
+                                        parent=self.win)
+                elif nt_error == 0 and sx_error == 1 and dt_error == 0 and nm_error == 0:
+                    messagebox.showinfo("info", "Please validate the following field(s): Sex", icon='error',
+                                        parent=self.win)
+                elif nt_error == 0 and sx_error == 0 and dt_error == 1 and nm_error == 0:
+                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd)",
+                                        icon='error', parent=self.win)
+                elif nt_error == 0 and sx_error == 0 and dt_error == 0 and nm_error == 1:
+                    messagebox.showinfo("info", "Please validate the following field(s): Name", icon='error',
+                                        parent=self.win)
                 elif sx_error == 1 and nt_error == 1 and dt_error == 0 and nm_error == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex", icon='error',
+                                        parent=self.win)
                 elif sx_error == 0 and nt_error == 1 and dt_error == 1 and nm_error == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error',
+                                        parent=self.win)
                 elif sx_error == 0 and nt_error == 1 and dt_error == 1 and nm_error == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error',
+                                        parent=self.win)
                 elif sx_error == 0 and nt_error == 0 and dt_error == 1 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Name & Date", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Name & Date", icon='error',
+                                        parent=self.win)
                 elif sx_error == 0 and nt_error == 1 and dt_error == 0 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Name & Nation", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Name & Nation", icon='error',
+                                        parent=self.win)
                 elif sx_error == 1 and nt_error == 0 and dt_error == 0 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Name & Sex", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Name & Sex", icon='error',
+                                        parent=self.win)
                 elif sx_error == 0 and nt_error == 0 and dt_error == 1 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd) & Nation", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd) & Nation",
+                                        icon='error', parent=self.win)
                 elif sx_error == 1 and nt_error == 0 and dt_error == 0 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd) & Sex", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd) & Sex",
+                                        icon='error', parent=self.win)
                 elif sx_error == 1 and nt_error == 1 and dt_error == 1 and nm_error == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Sex & Nation & Date (yyyy-mm-dd)", icon='error', parent=self.win )
+                    messagebox.showinfo("info",
+                                        "Please validate the following field(s): Sex & Nation & Date (yyyy-mm-dd)",
+                                        icon='error', parent=self.win)
                 elif sx_error == 1 and nt_error == 1 and dt_error == 1 and nm_error == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Name & Nation & Sex & Date (yyyy-mm-dd)", icon='error', parent=self.win )
-
+                    messagebox.showinfo("info",
+                                        "Please validate the following field(s): Name & Nation & Sex & Date (yyyy-mm-dd)",
+                                        icon='error', parent=self.win)
 
         self.new_runner_record_btn['command'] = lambda: new_runner_record(rname, rsex, rnation, rbirthdate)
         self.new_runner_record_btn.grid(row=6, sticky=W, padx=5, pady=5)
         # ---- End create tab
-    
-        #-----------------------------------------------------------------------------------------------------------------#
-        #-------------------------------------------- UPDATE TAB Runners -------------------------------------------------#
+
+        # -----------------------------------------------------------------------------------------------------------------#
+        # -------------------------------------------- UPDATE TAB Runners -------------------------------------------------#
         update_tab = ttk.Frame(tab_control)  # create tab
         tab_control.add(update_tab, text="Update Runner Record(s)")  # add the tab
 
@@ -249,25 +277,25 @@ class DisplayRaces:
 
             cur = con.cursor()
             with con:
-                if len(u_rid3)!= 0 and len(u_rname3) == 0:
+                if len(u_rid3) != 0 and len(u_rname3) == 0:
                     cur.execute(f'SELECT * FROM runner WHERE runner_id = {u_rid3} ORDER by runner_id LIMIT 1000')
-                elif len(u_rid3)== 0 and len(u_rname3) != 0:
+                elif len(u_rid3) == 0 and len(u_rname3) != 0:
                     cur.execute(f'SELECT * FROM runner WHERE runner_name LIKE {u_rname3} ORDER by runner_id LIMIT 1000')
-                elif len(u_rid3)!= 0 and len(u_rname3) != 0:
-                    cur.execute(f'SELECT * FROM runner WHERE runner_id = {u_rid3} AND runner_name LIKE {u_rname3} ORDER by runner_id LIMIT 1000')
+                elif len(u_rid3) != 0 and len(u_rname3) != 0:
+                    cur.execute(
+                        f'SELECT * FROM runner WHERE runner_id = {u_rid3} AND runner_name LIKE {u_rname3} ORDER by runner_id LIMIT 1000')
                 else:
                     cur.execute(f'SELECT * FROM runner ORDER by runner_id LIMIT 1000 OFFSET 100')
-                result = cur.fetchall(); #all
+                result = cur.fetchall();  # all
                 con.commit()
 
-
-                for row in result: 
+                for row in result:
                     ulistbox.insert(END, '#' + str(row[0]) + ',  '
-                                + str(row[1]) + ',  '
-                                + str(row[2]) + ',  '
-                                + str(row[3]) + ',  '
-                                + str(row[4]) + '\n')
-                    
+                                    + str(row[1]) + ',  '
+                                    + str(row[2]) + ',  '
+                                    + str(row[3]) + ',  '
+                                    + str(row[4]) + '\n')
+
             scrollbar = Scrollbar(utab_frame)
 
             ulistbox.grid(row=5, sticky='WE')
@@ -279,11 +307,13 @@ class DisplayRaces:
         u_rid2.grid(row=2)
 
         tk.Label(utab_frame, text="Runner Name:  ").grid(row=3, sticky=W, padx=5, pady=2)
-        u_rname2 = tk.Entry(utab_frame, width=25 )
+        u_rname2 = tk.Entry(utab_frame, width=25)
         u_rname2.grid(row=3)
 
-        ttk.Label(utab_frame, 
-        text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4, sticky='WE',column=0)
+        ttk.Label(utab_frame,
+                  text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4,
+                                                                                                            sticky='WE',
+                                                                                                            column=0)
 
         view_runners_btn = tk.Button(utab_frame, text='View Runners', width=45)
         view_runners_btn['command'] = lambda: view_update_runners()
@@ -295,23 +325,31 @@ class DisplayRaces:
             u_rsex2 = u_rsex.get()
             u_rnation2 = u_rnation.get()
             u_rbirthdate2 = u_rbirthdate.get()
-            
+
             # validations!!
-            if len(u_rname2) == 0: nm_error2 = 1 
-            else:nm_error2 = 0
-            if len(u_rnation2) != 2: nt_error2 = 1 
-            else:nt_error2 = 0
-            if u_rsex2 == 'M' or u_rsex2 == 'F' : sx_error2 = 0
-            else:sx_error2 = 1
+            if len(u_rname2) == 0:
+                nm_error2 = 1
+            else:
+                nm_error2 = 0
+            if len(u_rnation2) != 2:
+                nt_error2 = 1
+            else:
+                nt_error2 = 0
+            if u_rsex2 == 'M' or u_rsex2 == 'F':
+                sx_error2 = 0
+            else:
+                sx_error2 = 1
             dt_error2 = ""
-            try: 
+            try:
                 datetime.datetime.strptime(u_rbirthdate2, '%Y-%m-%d')
                 dt_error2 == 0
             except ValueError:
                 dt_error2 = 1
 
-            if nt_error2 == 1 or sx_error2 == 1 or dt_error2 == 1: stop2 = 1
-            else: stop2 = 0
+            if nt_error2 == 1 or sx_error2 == 1 or dt_error2 == 1:
+                stop2 = 1
+            else:
+                stop2 = 0
 
             if stop2 != 1:
                 cur = con.cursor()
@@ -320,40 +358,53 @@ class DisplayRaces:
                     result = cur.fetchone()
                     con.commit()
                 if result == None:
-                    messagebox.showinfo("info", message="Record ID: " + str(u_rid2) + " , doesn't exist! \nChoose a valid ID.", icon='error', parent=self.win )
+                    messagebox.showinfo("info",
+                                        message="Record ID: " + str(u_rid2) + " , doesn't exist! \nChoose a valid ID.",
+                                        icon='error', parent=self.win)
                 else:
                     cur = con.cursor()
                     with con:
-                        cur.execute(f"UPDATE runner SET runner_name = '{u_rname2}', sex= '{u_rsex2}', nation = '{u_rnation2}', birthdate = '{u_rbirthdate2}' WHERE runner_id = {u_rid2}")
-                        messagebox.showinfo(title="info", message="record ID: " + str(u_rid2) + ", successfully updated!", parent=self.win)
+                        cur.execute(
+                            f"UPDATE runner SET runner_name = '{u_rname2}', sex= '{u_rsex2}', nation = '{u_rnation2}', birthdate = '{u_rbirthdate2}' WHERE runner_id = {u_rid2}")
+                        messagebox.showinfo(title="info",
+                                            message="record ID: " + str(u_rid2) + ", successfully updated!",
+                                            parent=self.win)
                         con.commit()
-                    clear_fields() #clean the fields
+                    clear_fields()  # clean the fields
                     view_update_runners()
             else:
-                if nt_error2 == 1 and sx_error2 == 0  and dt_error2 == 0 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation", icon='error', parent=self.win )
+                if nt_error2 == 1 and sx_error2 == 0 and dt_error2 == 0 and nm_error2 == 0:
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation", icon='error',
+                                        parent=self.win)
                 elif nt_error2 == 0 and sx_error2 == 0 and dt_error2 == 0 and nm_error2 == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Name", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Name", icon='error',
+                                        parent=self.win)
                 elif nt_error2 == 0 and sx_error2 == 1 and dt_error2 == 0 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Sex", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Sex", icon='error',
+                                        parent=self.win)
                 elif nt_error2 == 0 and sx_error2 == 0 and dt_error2 == 1 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd)", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Date (yyyy-mm-dd)",
+                                        icon='error', parent=self.win)
                 elif sx_error2 == 1 and nt_error2 == 1 and dt_error2 == 0 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex", icon='error',
+                                        parent=self.win)
                 elif sx_error2 == 0 and nt_error2 == 1 and dt_error2 == 1 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Date", icon='error',
+                                        parent=self.win)
                 elif sx_error2 == 1 and nt_error2 == 0 and dt_error2 == 1 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Sex & Date", icon='error', parent=self.win  )
+                    messagebox.showinfo("info", "Please validate the following field(s): Sex & Date", icon='error',
+                                        parent=self.win)
                 elif sx_error2 == 1 and nt_error2 == 1 and dt_error2 == 1 and nm_error2 == 0:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Date", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Date",
+                                        icon='error', parent=self.win)
                 elif sx_error2 == 1 and nt_error2 == 1 and dt_error2 == 0 and nm_error2 == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Name", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Name",
+                                        icon='error', parent=self.win)
                 elif sx_error2 == 1 and nt_error2 == 1 and dt_error2 == 1 and nm_error2 == 1:
-                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Date & Name", icon='error', parent=self.win )
+                    messagebox.showinfo("info", "Please validate the following field(s): Nation & Sex & Date & Name",
+                                        icon='error', parent=self.win)
 
-
-
-        tk.Label(utab_frame, text="Name:  ").grid(row=8, sticky=W,  padx=5, pady=2)
+        tk.Label(utab_frame, text="Name:  ").grid(row=8, sticky=W, padx=5, pady=2)
         u_rname = tk.Entry(utab_frame, width=20)
         u_rname.grid(row=8)
 
@@ -399,23 +450,24 @@ class DisplayRaces:
 
             cur = con.cursor()
             with con:
-                if len(d_rid2)!= 0 and len(d_rname2) == 0:
+                if len(d_rid2) != 0 and len(d_rname2) == 0:
                     cur.execute(f'SELECT * FROM runner WHERE runner_id = {d_rid2} ORDER by runner_id LIMIT 1000')
-                elif len(d_rid2)== 0 and len(d_rname2) != 0:
+                elif len(d_rid2) == 0 and len(d_rname2) != 0:
                     cur.execute(f'SELECT * FROM runner WHERE runner_name LIKE {d_rname2} ORDER by runner_id LIMIT 1000')
-                elif len(d_rid2)!= 0 and len(d_rname2) != 0:
-                    cur.execute(f'SELECT * FROM runner WHERE runner_id = {d_rid2} AND runner_name LIKE {d_rname2} ORDER by runner_id LIMIT 1000')
+                elif len(d_rid2) != 0 and len(d_rname2) != 0:
+                    cur.execute(
+                        f'SELECT * FROM runner WHERE runner_id = {d_rid2} AND runner_name LIKE {d_rname2} ORDER by runner_id LIMIT 1000')
                 else:
                     cur.execute(f'SELECT * FROM runner ORDER by runner_id LIMIT 1000 OFFSET 100')
                 con.commit()
-                result = cur.fetchall(); #all
+                result = cur.fetchall();  # all
 
-            for row in result: 
+            for row in result:
                 dlistbox.insert(END, '#' + str(row[0]) + ',  '
-                               + str(row[1]) + ',  '
-                               + str(row[2]) + ',  '
-                               + str(row[3]) + ',  '
-                               + str(row[4]) + '\n')
+                                + str(row[1]) + ',  '
+                                + str(row[2]) + ',  '
+                                + str(row[3]) + ',  '
+                                + str(row[4]) + '\n')
 
                 view_label = ttk.Label(dtab_frame, text="(Scrollable list!)")
                 view_label.grid(row=6, padx=5, pady=2, sticky='SE')
@@ -430,17 +482,17 @@ class DisplayRaces:
         d_rid.grid(row=2)
 
         tk.Label(dtab_frame, text="Runner Name:  ").grid(row=3, sticky=W, padx=5, pady=2)
-        d_rname = tk.Entry(dtab_frame, width=25 )
+        d_rname = tk.Entry(dtab_frame, width=25)
         d_rname.grid(row=3)
 
-        ttk.Label(dtab_frame, 
-                  text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4, sticky='WE',column=0)
+        ttk.Label(dtab_frame,
+                  text="A limit of 1000 records is applied by search, please use selection criteria!").grid(row=4,
+                                                                                                            sticky='WE',
+                                                                                                            column=0)
 
-        
         view_runners_btn = tk.Button(dtab_frame, text='View Runners', width=45)
         view_runners_btn['command'] = lambda: view_delete_runners()
         view_runners_btn.grid(row=7, sticky='WE', padx=5)
-        
 
         def delete_record():
             d_rid3 = delete_field.get()
@@ -451,15 +503,18 @@ class DisplayRaces:
                 result = cur.fetchone()
                 con.commit()
             if result == None:
-                messagebox.showinfo("info", message="Record ID: " + str(d_rid3) + " , doesn't exist! \nChoose a valid ID.", icon='error', parent=self.win )
+                messagebox.showinfo("info",
+                                    message="Record ID: " + str(d_rid3) + " , doesn't exist! \nChoose a valid ID.",
+                                    icon='error', parent=self.win)
             else:
                 cur = con.cursor()
                 with con:
                     cur.execute(f"DELETE FROM runner WHERE runner_id = {d_rid3}")
-                    messagebox.showinfo(title="info", message="record ID: " + str(d_rid3) + ", successfully deleted!", parent=self.win)
+                    messagebox.showinfo(title="info", message="record ID: " + str(d_rid3) + ", successfully deleted!",
+                                        parent=self.win)
                     con.commit()
 
-            clear_fields() 
+            clear_fields()
             view_delete_runners()
 
         tk.Label(dtab_frame, text="Insert Runner ID for DEL:  ").grid(row=9, sticky=W, padx=5, pady=2)
@@ -469,7 +524,6 @@ class DisplayRaces:
         delete_runner_btn['command'] = lambda: delete_record()
         delete_runner_btn.grid(row=9, sticky='E', padx=5, pady=5)
         # ---- End DELETE TAB
-
 
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- Start FAQS TAB Content -----------------------------------
@@ -481,24 +535,27 @@ class DisplayRaces:
         ttk.Label(ftab_frame, text="Search the Runner(s) record!").grid(row=0, sticky="W", column=0)
 
         def sel1():
-            ttk.Label(ftab_frame, text= (" ")).grid(row=6, sticky='WE',column=0)
-            t1 = ttk.Label(ftab_frame, text= var1 + ("by Event ID, Distance, Event Year, Event Type ID")).grid(row=7, sticky='WE',column=0)
+            ttk.Label(ftab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
+            ttk.Label(ftab_frame,
+                      text="Show all races: "+ "by Event ID, Distance, Event Year, Event Type ID").grid(row=7,
+                                                                                           sticky='WE',
+                                                                                           column=0)
 
             f1listbox = Listbox(ftab_frame, width=75)
-            #view_rows = ''
+            # view_rows = ''
 
             cur = con.cursor()
             with con:
                 cur.execute(f'SELECT * FROM event ORDER by event_id LIMIT 1000')
-                result = cur.fetchall(); #all
+                result = cur.fetchall()  # all
                 con.commit()
-                       
-            for row in result: 
+
+            for row in result:
                 f1listbox.insert(END, '#' + str(row[0]) + ',  '
-                               + str(row[1]) + ',  '
-                               + str(row[2]) + ',  '
-                               + str(row[3]) + '\n')
-            
+                                 + str(row[1]) + ',  '
+                                 + str(row[2]) + ',  '
+                                 + str(row[3]) + '\n')
+
             view_label = ttk.Label(ftab_frame, text="(Scrollable list!)")
             view_label.grid(row=7, padx=5, pady=2, sticky='SE')
 
@@ -506,27 +563,28 @@ class DisplayRaces:
             f1listbox.grid(row=8, sticky='WE')
             f1listbox.config(yscrollcommand=scrollbar.set)
             scrollbar.config(command=f1listbox.yview)
-            t1.delete(0, tk.END)
-            
 
         def sel2():
-            ttk.Label(ftab_frame, text= (" ")).grid(row=6, sticky='WE',column=0)
-            t2 = ttk.Label(ftab_frame, text= var2 + ("by Runner Name, Event Type, Distance, Event Year")).grid(row=7, sticky='WE',column=0)
+            ttk.Label(ftab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
+            ttk.Label(ftab_frame, text="Top Runner for each distance: " + "by Runner Name, Event Type, Distance, Event Year").grid(row=7,
+                                                                                                       sticky='WE',
+                                                                                                       column=0)
 
             f1listbox = Listbox(ftab_frame, width=75)
 
             cur = con.cursor()
             with con:
-                cur.execute(f' SELECT DISTINCT runner.runner_name, event_type.eventtype_name , event.distance, event.event_year FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) WHERE (event.distance, official_time) IN(SELECT event.distance, MIN(official_time) FROM participation_details JOIN event USING (event_id) GROUP BY event.distance) ORDER BY event.distance LIMIT 1000')
-                result = cur.fetchall(); #all
+                cur.execute(
+                    f' SELECT DISTINCT runner.runner_name, event_type.eventtype_name , event.distance, event.event_year FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) WHERE (event.distance, official_time) IN(SELECT event.distance, MIN(official_time) FROM participation_details JOIN event USING (event_id) GROUP BY event.distance) ORDER BY event.distance LIMIT 1000')
+                result = cur.fetchall()  # all
                 con.commit()
-                       
-            for row in result: 
+
+            for row in result:
                 f1listbox.insert(END, '#' + str(row[0]) + ',  '
-                               + str(row[1]) + ',  '
-                               + str(row[2]) + ',  '
-                               + str(row[3]) + '\n')
-            
+                                 + str(row[1]) + ',  '
+                                 + str(row[2]) + ',  '
+                                 + str(row[3]) + '\n')
+
             view_label = ttk.Label(ftab_frame, text="(Scrollable list!)")
             view_label.grid(row=7, padx=5, pady=2, sticky='SE')
 
@@ -534,61 +592,62 @@ class DisplayRaces:
             f1listbox.grid(row=8, sticky='WE')
             f1listbox.config(yscrollcommand=scrollbar.set)
             scrollbar.config(command=f1listbox.yview)
-            t2.delete(0, tk.END)
 
         def sel3():
-            ttk.Label(ftab_frame, text= (" ")).grid(row=8, sticky='WE',column=0)
-            t = ttk.Label(ftab_frame, text= var3 + ("by  Event Name, Year, Average Time")).grid(row=8, sticky='WE',column=0)
+            ttk.Label(ftab_frame, text=(" ")).grid(row=7, sticky='WE', column=0)
+            ttk.Label(ftab_frame, text="Get all Events by distance for each year :" + "by  Event Name, Year, Average Time").grid(row=7, sticky='WE',
+                                                                                         column=0)
 
             tk.Label(ftab_frame, text="Race Distance:  ").grid(row=6, sticky=W, padx=5, pady=2)
-            f_rcdist= tk.Entry(ftab_frame, width=25 )
+            f_rcdist = tk.Entry(ftab_frame, width=25)
             f_rcdist.grid(row=6)
 
             view_faqs_btn = tk.Button(ftab_frame, text='View Races', width=45)
             view_faqs_btn['command'] = lambda: view_faqs(f_rcdist)
             view_faqs_btn.grid(row=11, sticky='WE', padx=5)
 
-            view_faqs_btn.delete(0, tk.END)
-            view_faqs_btn.destroy
-            t.delete(0, tk.END)
-            f_rcdist.delete(0, tk.END)
+            # view_faqs_btn.delete(0, tk.END)
+            # view_faqs_btn.destroy
+            # t.delete(0, tk.END)
+            # f_rcdist.delete(0, tk.END)
 
         def view_faqs(f_rcdist):
             f1listbox = Listbox(ftab_frame, width=75)
             f_rdist2 = f_rcdist.get()
-            
+
             cur = con.cursor()
             with con:
-                if len(f_rdist2)!= 0:
-                    cur.execute(f'SELECT event_type.eventtype_name, event.event_year, AVG(participation_details.official_time) FROM event_type JOIN event USING(eventtype_id) JOIN participation_details USING(event_id) WHERE event.distance = {f_rdist2} GROUP BY event_type.eventtype_name, event.event_year LIMIT 1000')
-                
-                result = cur.fetchall(); #all
+                if len(f_rdist2) != 0:
+                    cur.execute(
+                        f'SELECT event_type.eventtype_name, event.event_year, AVG(participation_details.official_time) FROM event_type JOIN event USING(eventtype_id) JOIN participation_details USING(event_id) WHERE event.distance = {f_rdist2} GROUP BY event_type.eventtype_name, event.event_year LIMIT 1000')
+
+                result = cur.fetchall()  # all
                 con.commit()
-                        
-            for row in result: 
+
+            for row in result:
                 f1listbox.insert(END, '#' + str(row[0]) + ',  '
-                            + str(row[1]) + ',  '
-                            + str(row[2]) + '\n')
-            
+                                 + str(row[1]) + ',  '
+                                 + str(row[2]) + '\n')
+
             scrollbar = Scrollbar(rtab_frame)
-            f1listbox.grid(row=10, sticky='WE')
+            f1listbox.grid(row=8, sticky='WE')
             f1listbox.config(yscrollcommand=scrollbar.set)
             scrollbar.config(command=f1listbox.yview)
 
-        var1 = "Show all races:"
-        f_race = ttk.Radiobutton(ftab_frame, text="Show Races.", command=sel1)
+        var1 = StringVar(self.win, "0")
+        f_race = ttk.Radiobutton(ftab_frame, text="Show Races.", command=sel1, value="1", variable=var1)
         f_race.grid(row=2, sticky=W)
 
-        var2 = "Top Runner for each distance:"
-        f_toprunner = ttk.Radiobutton(ftab_frame, text="Top Runner for each distance?", command=sel2, variable= var1)
+        #var2 = StringVar(self.win, "Top Runner for each distance:")
+        f_toprunner = ttk.Radiobutton(ftab_frame, text="Top Runner for each distance?", command=sel2, value="2",variable=var1)
         f_toprunner.grid(row=3, sticky=W)
-        
-        var3 = "Get all Events by distance for each year:"
-        f_3 = ttk.Radiobutton(ftab_frame, text="Get all Events by distance and the average time for each year?", command=sel3)
+
+        #var3 = StringVar(self.win, "Get all Events by distance for each year:")
+        f_3 = ttk.Radiobutton(ftab_frame, text="Get all Events by distance and the average time for each year?",
+                              command=sel3, value="3",variable=var1)
         f_3.grid(row=4, sticky=W)
 
-        clear_fields() 
-
+        clear_fields()
 
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- START OTHER QUESTIONS TAB Content -----------------------------------
@@ -599,27 +658,28 @@ class DisplayRaces:
         oqtab_frame.grid(row=0, column=0, padx=5, pady=5)
         ttk.Label(oqtab_frame, text="What would you like to know?").grid(row=0, sticky="W", column=0)
 
-
         # Other Questions Tab Selection Function
         def otherq_sel():
             selection = otherq_sel_var.get()
 
             if selection == 1:
                 cur = con.cursor()
-                cur.execute(f'SELECT event.event_id, eventtype_name FROM event JOIN event_type USING (eventtype_id) LIMIT 1000')
+                cur.execute(
+                    f'SELECT event.event_id, eventtype_name FROM event JOIN event_type USING (eventtype_id) LIMIT 1000')
                 result = cur.fetchall()
-
 
                 # Label for UI/UX purposes
                 ttk.Label(oqtab_frame, text=(" ")).grid(row=6, sticky='WE', column=0)
-                ttk.Label(oqtab_frame, text="Show all the different races by Event ID, Event Name").grid(row=7, sticky='WE', column=0)
-                
+                ttk.Label(oqtab_frame, text="Show all the different races by Event ID, Event Name").grid(row=7,
+                                                                                                         sticky='WE',
+                                                                                                         column=0)
+
                 # Create a new Listbox to show results
                 listbox = Listbox(oqtab_frame, width=75)
 
-                for row in result: 
+                for row in result:
                     listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
-                
+
                 view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
                 view_label.grid(row=7, padx=5, pady=2, sticky='SE')
 
@@ -630,7 +690,8 @@ class DisplayRaces:
 
             elif selection == 2:
                 cur = con.cursor()
-                cur.execute(f'SELECT runner_name, eventtype_name FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) LIMIT 1000')
+                cur.execute(
+                    f'SELECT runner_name, eventtype_name FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) JOIN event_type USING (eventtype_id) LIMIT 1000')
                 result = cur.fetchall()
 
                 # Label for UI/UX purposes
@@ -640,9 +701,9 @@ class DisplayRaces:
                 # Create a new Listbox to show results
                 listbox = Listbox(oqtab_frame, width=75)
 
-                for row in result: 
+                for row in result:
                     listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
-                
+
                 view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
                 view_label.grid(row=7, padx=5, pady=2, sticky='SE')
 
@@ -650,10 +711,11 @@ class DisplayRaces:
                 listbox.grid(row=8, sticky='WE')
                 listbox.config(yscrollcommand=scrollbar.set)
                 scrollbar.config(command=listbox.yview)
-            
+
             elif selection == 3:
                 cur = con.cursor()
-                cur.execute(f'SELECT runner_name, event.distance FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) GROUP BY runner_name, event.distance, official_time HAVING official_time <= ALL(SELECT official_time FROM participation_details)')
+                cur.execute(
+                    f'SELECT runner_name, event.distance FROM runner JOIN participation_details USING (runner_id) JOIN event USING (event_id) GROUP BY runner_name, event.distance, official_time HAVING official_time <= ALL(SELECT official_time FROM participation_details)')
                 result = cur.fetchall()
 
                 # Label for UI/UX purposes
@@ -663,9 +725,9 @@ class DisplayRaces:
                 # Create a new Listbox to show results
                 listbox = Listbox(oqtab_frame, width=75)
 
-                for row in result: 
+                for row in result:
                     listbox.insert(END, '#' + str(row[0]) + ',  ' + str(row[1]) + '\n')
-                
+
                 view_label = ttk.Label(oqtab_frame, text="(Scrollable list!)")
                 view_label.grid(row=7, padx=5, pady=2, sticky='SE')
 
@@ -673,29 +735,30 @@ class DisplayRaces:
                 listbox.grid(row=8, sticky='WE')
                 listbox.config(yscrollcommand=scrollbar.set)
                 scrollbar.config(command=listbox.yview)
-            
+
             # Debug prints
             # print(f"Selection: {selection}")
             # print(f"Result: {result}")
-
-
 
         # Selection variable
         otherq_sel_var = IntVar()
 
         # Interesting Fact Nr. 1 - Show a specific race 
-        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show all the different races", variable=otherq_sel_var, value=1, command=otherq_sel)
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show all the different races", variable=otherq_sel_var,
+                                        value=1, command=otherq_sel)
         event_rbutton.grid(row=2, sticky=W)
 
         # Interesting Fact Nr. 2 - Show every race that the runner has competed in
-        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show every race that the runner has competed in", variable=otherq_sel_var, value=2, command=otherq_sel)
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show every race that the runner has competed in",
+                                        variable=otherq_sel_var, value=2, command=otherq_sel)
         event_rbutton.grid(row=3, sticky=W)
 
         # Interesting Fact Nr. 3 - Show top runner overall
-        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show top runner overall", variable=otherq_sel_var, value=3, command=otherq_sel)
+        event_rbutton = ttk.Radiobutton(oqtab_frame, text="Show top runner overall", variable=otherq_sel_var, value=3,
+                                        command=otherq_sel)
         event_rbutton.grid(row=4, sticky=W)
         # -------------------------------------- END OTHER QUESTIONS TAB Content -----------------------------------
-    
+
         # ---------------------------------------------------------------------------------------------------
         # -------------------------------------- TABS FUNCS -----------------------------------
         tab_control.grid()  # to make tabs visible
@@ -721,10 +784,11 @@ class DisplayRaces:
         # help/about menu bar items
         about_menu = Menu(menu_bar, tearoff=0)
         about_menu.add_command(label="Runners Data Management Application, "
-                                     "Ⓒ 2022Edition MECD - Databases - GROUP8")  
+                                     "Ⓒ 2022Edition MECD - Databases - GROUP8")
         menu_bar.add_cascade(label="About", menu=about_menu)
 
         self.win.mainloop()
+
 
 if __name__ == '__main__':
     DisplayRaces()

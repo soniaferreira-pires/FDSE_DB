@@ -58,63 +58,42 @@ LIMIT 5
 --e)  What was the best time improvement in two consecutive maratona  races (name, birthdate, improvement)?
 
 
-SELECT *
- FROM( SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time,  t2.official_time – t1.official_time AS time
+SELECT runner_name, birthdate, improvement
 FROM
-	(SELECT * 
-		FROM runner JOIN 
-		     participation_details USING(runner_id) JOIN
-		     event USING(event_id) JOIN
-		     event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
-	JOIN
-	(SELECT *
-		FROM runner JOIN 
-		    participation_details USING(runner_id) JOIN
-		    event USING(event_id) JOIN
-		    event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
-		USING (runner_id)
+(SELECT t1.runner_name, t1.birthdate, t1.event_year, t2.event_year, t1.official_time, t2.official_time,  t2.official_time - t1.official_time AS improvement
+FROM
+(SELECT * 
+FROM runner JOIN 
+participation_details USING(runner_id) JOIN
+event USING(event_id) JOIN
+event_type USING(eventtype_id)
+WHERE event_type.eventtype_name = 'maratona') AS t1
+JOIN
+(SELECT *
+FROM runner JOIN 
+participation_details USING(runner_id) JOIN
+event USING(event_id) JOIN
+event_type USING(eventtype_id)
+WHERE event_type.eventtype_name = 'maratona') AS t2
+USING (runner_id)
 WHERE t2.event_year = t1.event_year + 1) AS result
-WHERE time <= ALL (SELEC T t2.official_time – t1.official_time AS time
-FROM
-	(SELECT * 
-		FROM runner JOIN 
-		     participation_details USING(runner_id) JOIN
-		     event USING(event_id) JOIN
-		     event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
-	JOIN
-	(SELECT *
-		FROM runner JOIN 
-		    participation_details USING(runner_id) JOIN
-		    event USING(event_id) JOIN
-		    event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
-		USING (runner_id)
-WHERE t2.event_year = t1.event_year + 1) AS subq
-	
-
-
---- starting point // decomposing the problem in small parts
-SELECT t1.runner_name, t1.event_year, t2.event_year, t1.official_time, t2.official_time, t2.official_time - t1.official_time AS time
-FROM
-	(SELECT * 
-		FROM runner JOIN 
-		     participation_details USING(runner_id) JOIN
-		     event USING(event_id) JOIN
-		     event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t1
-	JOIN
-	(SELECT *
-		FROM runner JOIN 
-		    participation_details USING(runner_id) JOIN
-		    event USING(event_id) JOIN
-		    event_type USING(eventtype_id)
-		WHERE event_type.eventtype_name = 'maratona' and runner_name = 'Abel Santos') AS t2
-		USING (runner_id)
-WHERE t1.event_year = t2.event_year + 1
-LIMIT 50
+WHERE improvement <= ALL 
+(SELECT t2.official_time - t1.official_time AS improvement
+FROM (SELECT * 
+FROM runner JOIN 
+participation_details USING(runner_id) JOIN
+event USING(event_id) JOIN
+event_type USING(eventtype_id)
+WHERE event_type.eventtype_name = 'maratona') AS t1
+JOIN
+(SELECT *
+FROM runner JOIN 
+participation_details USING(runner_id) JOIN
+event USING(event_id) JOIN
+event_type USING(eventtype_id)
+WHERE event_type.eventtype_name = 'maratona') AS t2
+USING (runner_id)
+WHERE t2.event_year = t1.event_year + 1)
 
 
 

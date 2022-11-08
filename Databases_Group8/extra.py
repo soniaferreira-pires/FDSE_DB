@@ -63,7 +63,7 @@ while not connected:
 cur = con.cursor()
 cur.execute(f'SELECT age_class, official_time FROM participation_details JOIN age_class USING(ageclass_id)')
 result = cur.fetchall()
-print(f"Raw Result 1: {result}")
+# print(f"Raw Result 1: {result}")
 
 
 # Organise data into two list for plotting purposes
@@ -74,19 +74,19 @@ for r in result:
 
 
 # Some debug prints
-print(f"Age Class: {age_class}")
-print(f"Official Time: {official_time}")
+# print(f"Age Class: {age_class}")
+# print(f"Official Time: {official_time}")
 
 # Convert official time entries to minutes
 official_time = convert_time_to_minutes(time_values_list=official_time)
 
 
 # Sanity check
-print(f"Official Time (converted into minutes): {official_time}")
+# print(f"Official Time (converted into minutes): {official_time}")
 
 
 # Plot this values using
-plt.bar(x=age_class, y=official_time)
+plt.bar(x=age_class, height=official_time)
 plt.xlabel("Age class")
 plt.ylabel("Official running time (minutes)")
 plt.title("Relation between age and official running time")
@@ -117,7 +117,7 @@ official_time = convert_time_to_minutes(time_values_list=official_time)
 
 
 # Sanity check
-print(f"Official Time (converted into minutes): {official_time}")
+# print(f"Official Time (converted into minutes): {official_time}")
 
 
 # Plot this values using
@@ -134,7 +134,7 @@ cur = con.cursor()
 # cur.execute(f'SELECT sex, COUNT(sex), event_type.name FROM runner JOIN participation_details USING(runner_id)JOIN event USING(event_id) JOIN event_type USING(eventtype_id) GROUP BY sex, event_type.name')
 cur.execute(f'SELECT sex, eventtype_name FROM runner JOIN participation_details USING(runner_id)JOIN event USING(event_id) JOIN event_type USING(eventtype_id)')
 result = cur.fetchall()
-print(f"Raw Result 3: {result}")
+# print(f"Raw Result 3: {result}")
 
 
 # Organise data into two list for plotting purposes
@@ -145,8 +145,8 @@ for r in result:
 
 
 # Some debug prints
-print(f"Sex: {sex}")
-print(f"Event: {event}")
+# print(f"Sex: {sex}")
+# print(f"Event: {event}")
 
 
 # Convert this into dataframe to facilitate plotting
@@ -155,7 +155,7 @@ df = pd.DataFrame.from_dict(data=df)
 print(f"DataFrame:\n{df}")
 
 df_group = df.groupby(['Event','Sex']).size().unstack()
-print(df_group)
+# print(df_group)
 
 
 # Plot
@@ -174,7 +174,7 @@ plt.show()
 cur = con.cursor()
 cur.execute(f'SELECT event_year, distance  FROM event ')
 result = cur.fetchall()
-print(f'Raw Result 4: {result}')
+# print(f'Raw Result 4: {result}')
 
 
 # Organise data into two list for plotting purposes
@@ -185,8 +185,8 @@ for r in result:
 
 
 # Some debug prints
-print(f"Event Year: {event_year}")
-print(f"Distance: {distance}")
+# print(f"Event Year: {event_year}")
+# print(f"Distance: {distance}")
 
 
 # Plot this values using
