@@ -34,10 +34,8 @@ connected = False
 while not connected:
 
     username = input('Type your database username: ')
-    #username = "fced_maria_goncalves"
     password = pwinput.pwinput(prompt='Type your database password: ', mask='*')
-    #password = "Galves13!up.pt"
-
+    
     try:
         con = psycopg2.connect(
             database=username,  # your database is the same as your username
