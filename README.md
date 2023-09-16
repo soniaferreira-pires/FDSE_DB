@@ -1,16 +1,15 @@
 # FDSE_DB - Databases 2022
 **Python-SQL interface: Creating, populating, accessing/consulting/update database and visualize statistics.**
 
+**- Authors: Cátia Teixeira, Maria Beatriz Gonçalves, Sónia Ferreira**
 
-### Authors: Cátia Teixeira, Maria Beatriz Gonçalves, Sónia Ferreira
 ---
 
 <br>
 This project regards the design of a database for the races of Portugal (running races), using 
-the tools of SQL and Python and it’s constituted by the following steps:
+the tools of SQL and Python and it’s constituted by the following steps:   
 
 <br>
-
 
 **1.   Creation of the UML (uml.png file) and Relational Model (relational.txt):**   
 Based on the fields provided on the excel file, a UML model of the database was 
@@ -21,7 +20,7 @@ details, like event type, age class, etc.
 <br>
 
 **2.   Creation of SQL script (races.sql):**    
-This script will create 
+This script will create the tables in the database.
 
 <br>
 
