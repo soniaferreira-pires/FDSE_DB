@@ -1,6 +1,0 @@
-Runner (id [UK, NN], name [NN], sex [NN], nation, birthdate [NN])
-Team (id [UK, NN], name [UK, NN])
-Event_type (id [UK, NN], name [UK, NN])
-Event (id [UK, NN], distance [NN], event_year[NN], #event_type_id -> Event_type [NN])
-Participation_details (id [UK, NN], #team_id -> Team [UK], #event_id -> Event [UK, NN], #runner_id -> Runner [UK, NN], #age_class_id -> Age_Class[UK, NN], bib [NN], official_time [NN], net_time, place [NN], age [NN])
-Age_Class (id [UK, NN], name [UK, NN])
