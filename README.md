@@ -8,7 +8,8 @@
 <br>
 This project regards the design of a database for the races of Portugal (running races), using 
 the tools of SQL and Python and it’s constituted by the following steps:   
-
+   
+<br>
 <br>
 
 **1.   Creation of the UML (uml.png file) and Relational Model (relational.txt):**   
