@@ -1,8 +1,7 @@
-# FDSE_DB - Databases 2022
-**Python-SQL interface: Creating, populating, accessing/consulting/update database and visualize statistics.**
-
-**- Authors: Cátia Teixeira, Maria Beatriz Gonçalves, Sónia Ferreira**
-
+# Databases - Running Races of Portugal
+#### FEUP, Faculty of Engineering, University of Porto Master in Data Science and Enginnering
+##### Cátia Teixeira, Maria Beatriz Gonçalves, Sónia Ferreira
+##### Databases, October 2022
 ---
 
 <br>
